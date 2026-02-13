@@ -344,15 +344,6 @@
           ballRect.top < tileRect.bottom &&
           ownership[idx] !== ballIdx
       ) {
-          // ownership[idx] = ball === balls[0] ? 0 : 1;
-          // const dx = ball.x - (tile.x + TILE_SIZE / 2);
-          // const dy = ball.y - (tile.y + TILE_SIZE / 2);
-          // ball.safeZone = tileRect;
-          // if (Math.abs(dx) > Math.abs(dy)) {
-          //   ball.vx = -ball.vx;
-          // } else {
-          //   ball.vy = -ball.vy;
-          // }
           ball.safeZone = tileRect;
           if (checkBallSafeZone(oppositeBall)) {
             const odx = oppositeBall.x - (tile.x + TILE_SIZE / 2);
