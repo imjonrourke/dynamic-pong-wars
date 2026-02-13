@@ -283,15 +283,6 @@
     ctx.closePath();
   }
 
-  function getBallRect(ball) {
-    return {
-      left: ball.x - TILE_SIZE / 2,
-      right: ball.x + TILE_SIZE / 2,
-      top: ball.y - TILE_SIZE / 2,
-      bottom: ball.y + TILE_SIZE / 2
-    };
-  }
-
   function resetSafeZone(ball) {
     if (
       !(
