@@ -311,10 +311,14 @@
   }
 
   function checkBallSafeZone(ball) {
-    return !!(ball.safeZone.left &&
-    ball.safeZone.right &&
-    ball.safeZone.top &&
-    ball.safeZone.bottom);
+    const safeZone = ball.safeZone &&
+      ball.safeZone.left !== null &&
+      ball.safeZone.right !== null &&
+      ball.safeZone.top !== null &&
+      ball.safeZone.bottom !== null;
+      console.log('ball safe zone', safeZone);
+
+      return safeZone;
   }
 
   function detectCollision(ball) {
@@ -331,12 +335,14 @@
         top: tile.y,
         bottom: tile.y + TILE_SIZE
       };
+      const ballIdx = (ball === balls[0] ? 0 : 1);
+      const oppositeBall = balls[ballIdx === 0 ? 1 : 0]
       if (
           ballRect.right > tileRect.left &&
           ballRect.left < tileRect.right &&
           ballRect.bottom > tileRect.top &&
           ballRect.top < tileRect.bottom &&
-          ownership[idx] !== (ball === balls[0] ? 0 : 1)
+          ownership[idx] !== ballIdx
       ) {
           // ownership[idx] = ball === balls[0] ? 0 : 1;
           // const dx = ball.x - (tile.x + TILE_SIZE / 2);
@@ -347,16 +353,23 @@
           // } else {
           //   ball.vy = -ball.vy;
           // }
-          if (!checkBallSafeZone(ball)) {
-            ownership[idx] = ball === balls[0] ? 0 : 1;
-            const dx = ball.x - (tile.x + TILE_SIZE / 2);
-            const dy = ball.y - (tile.y + TILE_SIZE / 2);
-            ball.safeZone = tileRect;
-            if (Math.abs(dx) > Math.abs(dy)) {
-              ball.vx = -ball.vx;
+          ball.safeZone = tileRect;
+          if (checkBallSafeZone(oppositeBall)) {
+            const odx = oppositeBall.x - (tile.x + TILE_SIZE / 2);
+            const ody = oppositeBall.y - (tile.y + TILE_SIZE / 2);
+            if (Math.abs(odx) > Math.abs(ody)) {
+              oppositeBall.vx = -oppositeBall.vx;
             } else {
-              ball.vy = -ball.vy;
+              oppositeBall.vy = -oppositeBall.vy;
             }
+          }
+          ownership[idx] = ballIdx;
+          const dx = ball.x - (tile.x + TILE_SIZE / 2);
+          const dy = ball.y - (tile.y + TILE_SIZE / 2);
+          if (Math.abs(dx) > Math.abs(dy)) {
+            ball.vx = -ball.vx;
+          } else {
+            ball.vy = -ball.vy;
           }
       }
     });
