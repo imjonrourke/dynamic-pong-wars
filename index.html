@@ -226,7 +226,13 @@
       vx: 8,
       vy: -8,
       get color() { return nightColor; },
-      get targetColor() { return dayColor; }
+      get targetColor() { return dayColor; },
+      safeZone: {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null,
+      },
     },
     {
       x: (canvas.width / 4) * 3,
@@ -234,7 +240,13 @@
       vx: -8,
       vy: 8,
       get color() { return dayColor; },
-      get targetColor() { return nightColor; }
+      get targetColor() { return nightColor; },
+      safeZone: {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null,
+      },
     }
   ];
 
@@ -271,6 +283,40 @@
     ctx.closePath();
   }
 
+  function getBallRect(ball) {
+    return {
+      left: ball.x - TILE_SIZE / 2,
+      right: ball.x + TILE_SIZE / 2,
+      top: ball.y - TILE_SIZE / 2,
+      bottom: ball.y + TILE_SIZE / 2
+    };
+  }
+
+  function resetSafeZone(ball) {
+    if (
+      !(
+        ball.x > ball.safeZone.left &&
+        ball.x < ball.safeZone.right
+      ) &&
+      !(
+        ball.y > ball.safeZone.top &&
+        ball.y < ball.safeZone.bottom
+      )
+    ) {
+      ball.safeZone.left = null;
+      ball.safeZone.right = null;
+      ball.safeZone.top = null;
+      ball.safeZone.bottom = null;
+    }
+  }
+
+  function checkBallSafeZone(ball) {
+    return !!(ball.safeZone.left &&
+    ball.safeZone.right &&
+    ball.safeZone.top &&
+    ball.safeZone.bottom);
+  }
+
   function detectCollision(ball) {
     const ballRect = {
       left: ball.x - TILE_SIZE / 2,
@@ -292,14 +338,26 @@
           ballRect.top < tileRect.bottom &&
           ownership[idx] !== (ball === balls[0] ? 0 : 1)
       ) {
-        ownership[idx] = ball === balls[0] ? 0 : 1;
-        const dx = ball.x - (tile.x + TILE_SIZE / 2);
-        const dy = ball.y - (tile.y + TILE_SIZE / 2);
-        if (Math.abs(dx) > Math.abs(dy)) {
-          ball.vx = -ball.vx;
-        } else {
-          ball.vy = -ball.vy;
-        }
+          // ownership[idx] = ball === balls[0] ? 0 : 1;
+          // const dx = ball.x - (tile.x + TILE_SIZE / 2);
+          // const dy = ball.y - (tile.y + TILE_SIZE / 2);
+          // ball.safeZone = tileRect;
+          // if (Math.abs(dx) > Math.abs(dy)) {
+          //   ball.vx = -ball.vx;
+          // } else {
+          //   ball.vy = -ball.vy;
+          // }
+          if (!checkBallSafeZone(ball)) {
+            ownership[idx] = ball === balls[0] ? 0 : 1;
+            const dx = ball.x - (tile.x + TILE_SIZE / 2);
+            const dy = ball.y - (tile.y + TILE_SIZE / 2);
+            ball.safeZone = tileRect;
+            if (Math.abs(dx) > Math.abs(dy)) {
+              ball.vx = -ball.vx;
+            } else {
+              ball.vy = -ball.vy;
+            }
+          }
       }
     });
   }
@@ -364,6 +422,7 @@
       detectCollision(ball);
       checkBoundaries(ball);
       updateBall(ball);
+      resetSafeZone(ball);
     });
     iteration++;
     if (iteration % 1000 === 0) console.log("Iteration:", iteration);
