@@ -226,7 +226,13 @@
       vx: 8,
       vy: -8,
       get color() { return nightColor; },
-      get targetColor() { return dayColor; }
+      get targetColor() { return dayColor; },
+      safeZone: {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null,
+      },
     },
     {
       x: (canvas.width / 4) * 3,
@@ -234,7 +240,13 @@
       vx: -8,
       vy: 8,
       get color() { return dayColor; },
-      get targetColor() { return nightColor; }
+      get targetColor() { return nightColor; },
+      safeZone: {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null,
+      },
     }
   ];
 
@@ -271,6 +283,32 @@
     ctx.closePath();
   }
 
+  function resetSafeZone(ball) {
+    if (
+      !(
+        ball.x > ball.safeZone.left &&
+        ball.x < ball.safeZone.right
+      ) &&
+      !(
+        ball.y > ball.safeZone.top &&
+        ball.y < ball.safeZone.bottom
+      )
+    ) {
+      ball.safeZone.left = null;
+      ball.safeZone.right = null;
+      ball.safeZone.top = null;
+      ball.safeZone.bottom = null;
+    }
+  }
+
+  function checkBallSafeZone(ball) {
+    return ball.safeZone &&
+      ball.safeZone.left !== null &&
+      ball.safeZone.right !== null &&
+      ball.safeZone.top !== null &&
+      ball.safeZone.bottom !== null;
+  }
+
   function detectCollision(ball) {
     const ballRect = {
       left: ball.x - TILE_SIZE / 2,
@@ -285,21 +323,33 @@
         top: tile.y,
         bottom: tile.y + TILE_SIZE
       };
+      const ballIdx = (ball === balls[0] ? 0 : 1);
+      const oppositeBall = balls[ballIdx === 0 ? 1 : 0]
       if (
           ballRect.right > tileRect.left &&
           ballRect.left < tileRect.right &&
           ballRect.bottom > tileRect.top &&
           ballRect.top < tileRect.bottom &&
-          ownership[idx] !== (ball === balls[0] ? 0 : 1)
+          ownership[idx] !== ballIdx
       ) {
-        ownership[idx] = ball === balls[0] ? 0 : 1;
-        const dx = ball.x - (tile.x + TILE_SIZE / 2);
-        const dy = ball.y - (tile.y + TILE_SIZE / 2);
-        if (Math.abs(dx) > Math.abs(dy)) {
-          ball.vx = -ball.vx;
-        } else {
-          ball.vy = -ball.vy;
-        }
+          ball.safeZone = tileRect;
+          if (checkBallSafeZone(oppositeBall)) {
+            const odx = oppositeBall.x - (tile.x + TILE_SIZE / 2);
+            const ody = oppositeBall.y - (tile.y + TILE_SIZE / 2);
+            if (Math.abs(odx) > Math.abs(ody)) {
+              oppositeBall.vx = -oppositeBall.vx;
+            } else {
+              oppositeBall.vy = -oppositeBall.vy;
+            }
+          }
+          ownership[idx] = ballIdx;
+          const dx = ball.x - (tile.x + TILE_SIZE / 2);
+          const dy = ball.y - (tile.y + TILE_SIZE / 2);
+          if (Math.abs(dx) > Math.abs(dy)) {
+            ball.vx = -ball.vx;
+          } else {
+            ball.vy = -ball.vy;
+          }
       }
     });
   }
@@ -364,6 +414,7 @@
       detectCollision(ball);
       checkBoundaries(ball);
       updateBall(ball);
+      resetSafeZone(ball);
     });
     iteration++;
     if (iteration % 1000 === 0) console.log("Iteration:", iteration);
