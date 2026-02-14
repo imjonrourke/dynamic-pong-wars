@@ -302,14 +302,11 @@
   }
 
   function checkBallSafeZone(ball) {
-    const safeZone = ball.safeZone &&
+    return ball.safeZone &&
       ball.safeZone.left !== null &&
       ball.safeZone.right !== null &&
       ball.safeZone.top !== null &&
       ball.safeZone.bottom !== null;
-      console.log('ball safe zone', safeZone);
-
-      return safeZone;
   }
 
   function detectCollision(ball) {
